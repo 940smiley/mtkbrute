@@ -72,10 +72,11 @@ flash_firmware.bat
 
 Or manually:
 ```bash
-python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
-  --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
-  lk1 C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin ^
-  lk2 C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
+# Flash preloader
+python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
+
+# Flash bootloader
+python C:/users/chenn/mtkbrute/mtkclient/mtk.py w lk C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
 ```
 
 ### Troubleshooting Stage 2 Boot Failures
@@ -131,29 +132,22 @@ If standard flashing fails, try these options:
 
 1. Skip DRAM setup:
    ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
-     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
-     --skip_dram_setup=1
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --skip_dram_setup=1
    ```
 
 2. Use alternative DA address:
    ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
-     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
-     --da_addr=0x200000
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --da_addr=0x200000
    ```
 
 3. Force USB download mode:
    ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
-     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
-     --usbdl_mode=1
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --usbdl_mode=1
    ```
 
 4. Flash preloader only:
    ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
-     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
    ```
 
 ## Requirements
