@@ -1,0 +1,46 @@
+
+############################################################################################################
+#
+#  General Setting 
+#    
+############################################################################################################
+- general: MTK_PLATFORM_CFG
+  info: 
+    - config_version: V1.1.2
+      platform: MT6739
+      project: k39tv1_bsp
+      storage: EMMC
+      boot_channel: MSDC_0
+      block_size: 0x20000
+############################################################################################################
+#
+#  Layout Setting
+#
+############################################################################################################
+- partition_index: SYS0
+  partition_name: preloader
+  file_name: preloader_k39tv1_bsp.bin
+  is_download: true
+  type: SV5_BL_BIN
+  linear_start_addr: 0x0
+  physical_start_addr: 0x0
+  partition_size: 0x40000
+  region: EMMC_BOOT_1
+  boundary_check: true
+  is_reserved: false
+  operation_type: BOOTLOADERS
+  reserve: 0x00
+
+- partition_index: SYS1
+  partition_name: bootloader
+  file_name: k39tv1-kaeru.bin
+  is_download: true
+  type: NORMAL_ROM
+  linear_start_addr: 0x0
+  physical_start_addr: 0x0
+  partition_size: 0x800000
+  region: EMMC_USER
+  boundary_check: true
+  is_reserved: false
+  operation_type: BOOTLOADERS
+  reserve: 0x00
