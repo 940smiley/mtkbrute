@@ -30,7 +30,7 @@ cp C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin C:/users/chenn/mtkbrut
 
 # Flash the firmware with modified parameters to bypass DRAM setup
 echo "Flashing with modified parameters to bypass DRAM issues..."
-python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write \
+python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py w \
     --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin \
     --skip_dram_setup=1
 
@@ -39,8 +39,9 @@ if [ $? -eq 0 ]; then
     
     # Now try to flash the bootloader separately
     echo "Flashing bootloader..."
-    python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write \
-        --bootloader=C:/users/chenn/mtkbrute/mtk_build/fixed/k39tv1-kaeru.bin
+    python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py w \
+        lk1 C:/users/chenn/mtkbrute/mtk_build/fixed/k39tv1-kaeru.bin \
+        lk2 C:/users/chenn/mtkbrute/mtk_build/fixed/k39tv1-kaeru.bin
     
     if [ $? -eq 0 ]; then
         echo "Bootloader flashing completed successfully!"
@@ -53,7 +54,7 @@ else
     
     # Try with different parameters
     echo "Attempting alternative flashing method..."
-    python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write \
+    python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py w \
         --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin \
         --da_addr=0x200000
     
@@ -63,8 +64,8 @@ else
         echo "All flashing attempts failed. Please check your device connection."
         echo ""
         echo "You may need to try one of these commands manually:"
-        echo "1. python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin --skip_dram_setup=1"
-        echo "2. python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin --da_addr=0x200000"
-        echo "3. python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin --usbdl_mode=1"
+        echo "1. python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py w --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin --skip_dram_setup=1"
+        echo "2. python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py w --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin --da_addr=0x200000"
+        echo "3. python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py w --preloader=C:/users/chenn/mtkbrute/mtk_build/fixed/preloader_k39tv1_bsp.bin --usbdl_mode=1"
     fi
 fi

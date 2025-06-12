@@ -23,7 +23,10 @@ echo "Device detected! Proceeding with flashing..."
 
 # Flash the firmware
 echo "Flashing preloader and bootloader..."
-python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --bootloader=C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
+python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py w \
+    --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin \
+    lk1 C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin \
+    lk2 C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
 
 if [ $? -eq 0 ]; then
     echo "Flashing completed successfully!"

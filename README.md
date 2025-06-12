@@ -20,8 +20,10 @@ C:/users/chenn/mtkbrute/
 ├── mtkclient/         # MTK Client tools
 ├── build_firmware.py  # Firmware builder script
 ├── fix_firmware.py    # Firmware fixer script
-├── flash_firmware.sh  # Standard firmware flashing script
-└── flash_fixed_firmware.sh # Modified flashing script for problematic devices
+├── flash_firmware.sh  # Standard firmware flashing script (Linux/Mac)
+├── flash_firmware.bat # Standard firmware flashing script (Windows)
+├── flash_fixed_firmware.sh # Modified flashing script (Linux/Mac)
+└── flash_fixed_firmware.bat # Modified flashing script (Windows)
 ```
 
 ## Setup
@@ -34,7 +36,7 @@ C:/users/chenn/mtkbrute/
 2. Install dependencies:
    ```bash
    cd mtkclient
-   pip3 install -r requirements.txt
+   pip install -r requirements.txt
    ```
 
 3. Copy your binary files to the bin directory:
@@ -46,26 +48,34 @@ C:/users/chenn/mtkbrute/
 
 To analyze the input files without building:
 ```bash
-python3 build_firmware.py --analyze
+python build_firmware.py --analyze
 ```
 
 To build the complete firmware package:
 ```bash
-python3 build_firmware.py
+python build_firmware.py
 ```
 
 ## Flashing Firmware
 
 ### Standard Flashing
 
-To flash the firmware to a device:
+#### On Windows:
+```
+flash_firmware.bat
+```
+
+#### On Linux/Mac:
 ```bash
 ./flash_firmware.sh
 ```
 
 Or manually:
 ```bash
-python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --bootloader=C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
+python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
+  --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
+  lk1 C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin ^
+  lk2 C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
 ```
 
 ### Troubleshooting Stage 2 Boot Failures
@@ -77,6 +87,13 @@ DAXFlash - [LIB]: Error on booting to da (xflash)
 ```
 
 Try the fixed firmware flashing script:
+
+#### On Windows:
+```
+flash_fixed_firmware.bat
+```
+
+#### On Linux/Mac:
 ```bash
 ./flash_fixed_firmware.sh
 ```
@@ -88,7 +105,7 @@ This script:
 
 You can also try fixing the firmware files:
 ```bash
-python3 fix_firmware.py
+python fix_firmware.py
 ```
 
 ### Entering Bootloader Mode
@@ -114,22 +131,29 @@ If standard flashing fails, try these options:
 
 1. Skip DRAM setup:
    ```bash
-   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --skip_dram_setup=1
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
+     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
+     --skip_dram_setup=1
    ```
 
 2. Use alternative DA address:
    ```bash
-   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --da_addr=0x200000
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
+     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
+     --da_addr=0x200000
    ```
 
 3. Force USB download mode:
    ```bash
-   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --usbdl_mode=1
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
+     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin ^
+     --usbdl_mode=1
    ```
 
 4. Flash preloader only:
    ```bash
-   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w ^
+     --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
    ```
 
 ## Requirements

@@ -172,7 +172,7 @@ def main():
     print("\nFirmware build completed!")
     print(f"Output firmware: {firmware_file}")
     print("\nTo flash the firmware, use the following command:")
-    print(f"python3 {MTKCLIENT_DIR}/mtk.py write --preloader={OUT_DIR}/preloader_k39tv1_bsp.bin --bootloader={OUT_DIR}/k39tv1-kaeru.bin")
+    print(f"python3 {MTKCLIENT_DIR}/mtk.py w --preloader={OUT_DIR}/preloader_k39tv1_bsp.bin lk1 {OUT_DIR}/k39tv1-kaeru.bin lk2 {OUT_DIR}/k39tv1-kaeru.bin")
     
     return 0
 
