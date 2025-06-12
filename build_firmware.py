@@ -14,7 +14,7 @@ import subprocess
 from pathlib import Path
 
 # Define paths
-BASE_DIR = Path('/workspaces/mtkbrute')
+BASE_DIR = Path('C:/users/chenn/mtkbrute')
 BIN_DIR = BASE_DIR / 'mtk_build' / 'bin'
 OUT_DIR = BASE_DIR / 'mtk_build' / 'out'
 MTKCLIENT_DIR = BASE_DIR / 'mtkclient'

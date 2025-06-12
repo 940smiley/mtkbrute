@@ -12,13 +12,16 @@ This project helps you build a firmware package using:
 ## Directory Structure
 
 ```
-mtkbrute/
+C:/users/chenn/mtkbrute/
 ├── mtk_build/
 │   ├── bin/           # Input binary files
-│   └── out/           # Output firmware files
+│   ├── out/           # Output firmware files
+│   └── fixed/         # Fixed firmware files
 ├── mtkclient/         # MTK Client tools
 ├── build_firmware.py  # Firmware builder script
-└── flash_firmware.sh  # Firmware flashing script
+├── fix_firmware.py    # Firmware fixer script
+├── flash_firmware.sh  # Standard firmware flashing script
+└── flash_fixed_firmware.sh # Modified flashing script for problematic devices
 ```
 
 ## Setup
@@ -51,12 +54,9 @@ To build the complete firmware package:
 python3 build_firmware.py
 ```
 
-This will:
-1. Analyze the bootloader and preloader files
-2. Create a scatter file for the firmware
-3. Build the firmware package in `mtk_build/out/`
-
 ## Flashing Firmware
+
+### Standard Flashing
 
 To flash the firmware to a device:
 ```bash
@@ -65,7 +65,30 @@ To flash the firmware to a device:
 
 Or manually:
 ```bash
-python3 mtkclient/mtk.py write --preloader=mtk_build/out/preloader_k39tv1_bsp.bin --bootloader=mtk_build/out/k39tv1-kaeru.bin
+python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --bootloader=C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
+```
+
+### Troubleshooting Stage 2 Boot Failures
+
+If you encounter errors like:
+```
+DAXFlash - [LIB]: Stage was't executed. Maybe dram issue?
+DAXFlash - [LIB]: Error on booting to da (xflash)
+```
+
+Try the fixed firmware flashing script:
+```bash
+./flash_fixed_firmware.sh
+```
+
+This script:
+1. Bypasses DRAM setup
+2. Uses alternative memory addresses
+3. Tries multiple flashing methods
+
+You can also try fixing the firmware files:
+```bash
+python3 fix_firmware.py
 ```
 
 ### Entering Bootloader Mode
@@ -85,21 +108,32 @@ To put your device in bootloader mode:
 - Size: 118,996 bytes
 - Magic: 4d4d4d01 (Valid MTK preloader header)
 
-### Scatter File
-The scatter file (`MT6739_Android_scatter.txt`) defines the firmware layout:
-- Preloader partition at EMMC_BOOT_1
-- Bootloader partition at EMMC_USER
+## Advanced Flashing Options
+
+If standard flashing fails, try these options:
+
+1. Skip DRAM setup:
+   ```bash
+   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --skip_dram_setup=1
+   ```
+
+2. Use alternative DA address:
+   ```bash
+   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --da_addr=0x200000
+   ```
+
+3. Force USB download mode:
+   ```bash
+   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --usbdl_mode=1
+   ```
+
+4. Flash preloader only:
+   ```bash
+   python3 C:/users/chenn/mtkbrute/mtkclient/mtk.py write --preloader=C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
+   ```
 
 ## Requirements
 
 - Python 3.6+
 - USB connection to device
 - Device in bootloader mode for flashing
-
-## Troubleshooting
-
-If flashing fails:
-1. Ensure device is in bootloader mode
-2. Check USB connection
-3. Try running with sudo if permission issues occur
-4. Verify that the binary files are not corrupted
