@@ -16,14 +16,16 @@ C:/users/chenn/mtkbrute/
 ├── mtk_build/
 │   ├── bin/           # Input binary files
 │   ├── out/           # Output firmware files
-│   └── fixed/         # Fixed firmware files
+│   ├── fixed/         # Fixed firmware files
+│   ├── direct/        # Direct flash method files
+│   └── brom/          # BROM exploit method files
 ├── mtkclient/         # MTK Client tools
 ├── build_firmware.py  # Firmware builder script
 ├── fix_firmware.py    # Firmware fixer script
-├── flash_firmware.sh  # Standard firmware flashing script (Linux/Mac)
-├── flash_firmware.bat # Standard firmware flashing script (Windows)
-├── flash_fixed_firmware.sh # Modified flashing script (Linux/Mac)
-└── flash_fixed_firmware.bat # Modified flashing script (Windows)
+├── flash_firmware.bat # Standard firmware flashing script
+├── flash_fixed_firmware.bat # Modified flashing script
+├── direct_flash.bat   # Direct flashing script (bypasses stage 2)
+└── brom_flash.bat     # BROM exploit flashing script
 ```
 
 ## Setup
@@ -60,26 +62,11 @@ python build_firmware.py
 
 ### Standard Flashing
 
-#### On Windows:
 ```
 flash_firmware.bat
 ```
 
-#### On Linux/Mac:
-```bash
-./flash_firmware.sh
-```
-
-Or manually:
-```bash
-# Flash preloader
-python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
-
-# Flash bootloader
-python C:/users/chenn/mtkbrute/mtkclient/mtk.py w lk C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
-```
-
-### Troubleshooting Stage 2 Boot Failures
+### Stage 2 Boot Failure Solutions
 
 If you encounter errors like:
 ```
@@ -87,34 +74,65 @@ DAXFlash - [LIB]: Stage was't executed. Maybe dram issue?
 DAXFlash - [LIB]: Error on booting to da (xflash)
 ```
 
-Try the fixed firmware flashing script:
+Try these solutions in order:
 
-#### On Windows:
+#### 1. Modified Parameters Flashing
 ```
 flash_fixed_firmware.bat
 ```
 
-#### On Linux/Mac:
-```bash
-./flash_fixed_firmware.sh
+#### 2. Direct Flashing (Bypasses Stage 2)
+```
+direct_flash.bat
 ```
 
-This script:
-1. Bypasses DRAM setup
-2. Uses alternative memory addresses
-3. Tries multiple flashing methods
-
-You can also try fixing the firmware files:
-```bash
-python fix_firmware.py
+#### 3. BROM Exploit Flashing (Most Reliable)
+```
+brom_flash.bat
 ```
 
-### Entering Bootloader Mode
+The BROM exploit method is the most reliable as it bypasses all bootloader stages and writes directly to the eMMC storage.
 
-To put your device in bootloader mode:
-1. Power off the device
-2. Press and hold Volume Down + Power buttons
-3. Connect USB cable while holding the buttons
+## Advanced Flashing Options
+
+### BROM Exploit Method
+
+This method uses the BROM exploit to bypass all bootloader stages:
+
+1. Put device in BROM mode:
+   - Power off device completely
+   - Press and hold Volume Down + Volume Up buttons
+   - Connect USB cable while holding the buttons
+   - Release after 5 seconds
+
+2. Run the BROM exploit:
+   ```bash
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py payload kamakiri C:/users/chenn/mtkbrute/mtk_build/bin/brom_MT6739_MT6731_MT8765_699.bin
+   ```
+
+3. Flash preloader directly:
+   ```bash
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py e preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
+   ```
+
+4. Flash bootloader directly:
+   ```bash
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py e lk C:/users/chenn/mtkbrute/mtk_build/out/k39tv1-kaeru.bin
+   ```
+
+### Crash Method
+
+If all else fails, try the crash method:
+
+1. Crash the device:
+   ```bash
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py crash
+   ```
+
+2. Flash preloader after crash:
+   ```bash
+   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --crash
+   ```
 
 ## File Details
 
@@ -126,32 +144,8 @@ To put your device in bootloader mode:
 - Size: 118,996 bytes
 - Magic: 4d4d4d01 (Valid MTK preloader header)
 
-## Advanced Flashing Options
-
-If standard flashing fails, try these options:
-
-1. Skip DRAM setup:
-   ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --skip_dram_setup=1
-   ```
-
-2. Use alternative DA address:
-   ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --da_addr=0x200000
-   ```
-
-3. Force USB download mode:
-   ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin --usbdl_mode=1
-   ```
-
-4. Flash preloader only:
-   ```bash
-   python C:/users/chenn/mtkbrute/mtkclient/mtk.py w preloader C:/users/chenn/mtkbrute/mtk_build/out/preloader_k39tv1_bsp.bin
-   ```
-
 ## Requirements
 
 - Python 3.6+
 - USB connection to device
-- Device in bootloader mode for flashing
+- Device in bootloader or BROM mode for flashing
