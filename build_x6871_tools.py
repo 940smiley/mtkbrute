@@ -133,8 +133,53 @@ def download_magisk():
     
     return magisk_apk
 
+def patch_boot_with_magisk_windows(boot_img, magisk_apk):
+    """Create a patching package for Windows users"""
+    log(f"Creating Magisk patching package for: {os.path.basename(boot_img)}")
+    
+    # Create output directory for patching package
+    patch_dir = os.path.join(CONFIG["output_dir"], "magisk_patch_package")
+    os.makedirs(patch_dir, exist_ok=True)
+    
+    # Copy boot image to patch directory
+    boot_copy = os.path.join(patch_dir, "boot.img")
+    shutil.copy(boot_img, boot_copy)
+    
+    # Copy Magisk APK to patch directory
+    magisk_copy = os.path.join(patch_dir, "magisk.apk")
+    shutil.copy(magisk_apk, magisk_copy)
+    
+    # Create instructions file
+    with open(os.path.join(patch_dir, "INSTRUCTIONS.txt"), "w") as f:
+        f.write("""MAGISK PATCHING INSTRUCTIONS
+==========================
+
+Since you're running on Windows, you'll need to patch the boot image using an Android device:
+
+1. Copy both "boot.img" and "magisk.apk" to your Android device
+2. Install the Magisk app from the APK
+3. Open Magisk app and tap on "Install"
+4. Choose "Select and Patch a File"
+5. Browse to and select the boot.img file
+6. Wait for the patching process to complete
+7. Copy the patched file (magisk_patched_*.img) back to your PC
+8. Flash the patched boot image to your device using:
+   fastboot flash boot magisk_patched_*.img
+
+Note: You can also use an Android emulator to perform these steps if you don't have a physical device.
+""")
+    
+    log(f"Magisk patching package created in: {patch_dir}")
+    log(f"Follow the instructions in INSTRUCTIONS.txt to patch your boot image")
+    return patch_dir
+
 def patch_boot_with_magisk(boot_img, magisk_apk):
-    """Patch boot image with Magisk"""
+    """Patch boot image with Magisk - platform-aware version"""
+    # On Windows, use the Windows-specific method
+    if os.name == 'nt':
+        return patch_boot_with_magisk_windows(boot_img, magisk_apk)
+    
+    # Linux/Unix implementation (original code)
     log(f"Patching boot image: {os.path.basename(boot_img)}")
     
     # Extract Magisk from APK
