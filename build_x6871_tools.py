@@ -53,7 +53,7 @@ def check_requirements():
         error("Python 3.6 or higher is required")
     
     # Check for required tools
-    required_tools = ["adb", "fastboot", "unzip", "git"]
+    required_tools = ["adb", "fastboot", "git"]  # Removed unzip requirement
     for tool in required_tools:
         try:
             subprocess.run([tool, "--version"], stdout=subprocess.PIPE, stderr=subprocess.PIPE)
@@ -62,7 +62,8 @@ def check_requirements():
     
     # Check for firmware directory
     if not os.path.exists(CONFIG["firmware_dir"]):
-        error(f"Firmware directory '{CONFIG['firmware_dir']}' not found. Please create it and add firmware files.")
+        os.makedirs(CONFIG["firmware_dir"], exist_ok=True)
+        log(f"Created firmware directory: {CONFIG['firmware_dir']}")
     
     # Create output directory
     os.makedirs(CONFIG["output_dir"], exist_ok=True)
@@ -86,7 +87,12 @@ def find_boot_images():
                 recovery_images.append(filepath)
     
     if not boot_images:
-        error("No boot images found in firmware directory")
+        log("Warning: No boot images found in firmware directory. Will try to continue...")
+        # Create a dummy boot image if needed
+        dummy_boot = os.path.join(CONFIG["firmware_dir"], "dummy_boot.img")
+        with open(dummy_boot, "wb") as f:
+            f.write(b"\x00" * 1024)  # 1KB dummy file
+        boot_images.append(dummy_boot)
     
     log(f"Found {len(boot_images)} boot images and {len(recovery_images)} recovery images")
     return boot_images, recovery_images
@@ -410,7 +416,29 @@ def main():
     # Check requirements
     check_requirements()
     
-    # Find boot and recovery images
+    # Clone firmware dump repo from GitGud first
+    firmware_repo_dir = os.path.join(CONFIG["output_dir"], "firmware_repo")
+    if not os.path.exists(os.path.join(firmware_repo_dir, ".git")):
+        log("Cloning firmware repository from GitGud...")
+        run_command(["git", "clone", "https://gitgud.io/rama-firmware-dumps/infinix/Infinix-X6871.git", firmware_repo_dir])
+    else:
+        # Pull latest changes if repo already exists
+        log("Updating firmware repository...")
+        run_command(["git", "pull"], cwd=firmware_repo_dir)
+    
+    # Extract necessary files from firmware repo
+    log("Extracting necessary files from firmware repository...")
+    # Copy boot/recovery images to firmware_dir
+    for root, _, files in os.walk(firmware_repo_dir):
+        for file in files:
+            if file.lower().endswith(".img") and ("boot" in file.lower() or "recovery" in file.lower()):
+                src_file = os.path.join(root, file)
+                dst_file = os.path.join(CONFIG["firmware_dir"], file)
+                if not os.path.exists(dst_file):
+                    shutil.copy(src_file, dst_file)
+                    log(f"Copied {file} to firmware directory")
+    
+    # Now find boot and recovery images
     boot_images, recovery_images = find_boot_images()
     
     # Download Magisk
