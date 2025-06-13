@@ -409,6 +409,138 @@ TW_EXCLUDE_APEX := true
     
     log("TWRP device tree created")
 
+def extract_da_files():
+    """Extract DA files and preloaders from firmware"""
+    log("Extracting DA files and preloaders from firmware...")
+    
+    # Create output directory for DA files
+    da_output_dir = os.path.join(CONFIG["output_dir"], "da_files")
+    os.makedirs(da_output_dir, exist_ok=True)
+    
+    # Look for DA files in firmware_dump directory
+    da_files = []
+    preloader_files = []
+    
+    # Path to firmware dump directory
+    firmware_dir = "C:\\Users\\chenn\\mtkbrute\\firmware_dump"
+    
+    # Search for DA and preloader files
+    for root, _, files in os.walk(firmware_dir):
+        for file in files:
+            filepath = os.path.join(root, file)
+            lower_file = file.lower()
+            
+            # Look for DA files
+            if ("da" in lower_file or "download_agent" in lower_file) and lower_file.endswith(".bin"):
+                da_files.append(filepath)
+                # Copy to output directory
+                dst_file = os.path.join(da_output_dir, file)
+                shutil.copy(filepath, dst_file)
+                log(f"Found DA file: {file}")
+            
+            # Look for preloader files
+            elif "preloader" in lower_file and lower_file.endswith(".bin"):
+                preloader_files.append(filepath)
+                # Copy to output directory
+                dst_file = os.path.join(da_output_dir, file)
+                shutil.copy(filepath, dst_file)
+                log(f"Found preloader file: {file}")
+    
+    # If no DA files found, try to extract from scatter file or generate from preloader
+    if not da_files:
+        log("No DA files found directly, looking for scatter files...")
+        scatter_files = []
+        
+        for root, _, files in os.walk(firmware_dir):
+            for file in files:
+                if file.lower().endswith(".txt") and "scatter" in file.lower():
+                    scatter_files.append(os.path.join(root, file))
+        
+        if scatter_files:
+            log(f"Found {len(scatter_files)} scatter files, attempting to extract DA information...")
+            for scatter_file in scatter_files:
+                try:
+                    with open(scatter_file, 'r', errors='ignore') as f:
+                        content = f.read()
+                        # Look for DA download agent info in scatter file
+                        if "download_agent" in content.lower():
+                            log(f"Scatter file {os.path.basename(scatter_file)} contains DA information")
+                            # Extract DA file path from scatter file if possible
+                            # This is a simplified approach - actual extraction would need more parsing
+                            with open(os.path.join(da_output_dir, f"scatter_da_info_{os.path.basename(scatter_file)}"), 'w') as out_f:
+                                out_f.write(content)
+                except Exception as e:
+                    log(f"Error processing scatter file {os.path.basename(scatter_file)}: {str(e)}")
+    
+    # Generate DA file from preloader if needed and possible
+    if not da_files and preloader_files:
+        log("Attempting to generate DA file from preloader...")
+        for preloader in preloader_files:
+            preloader_name = os.path.basename(preloader)
+            generated_da = os.path.join(da_output_dir, f"generated_da_from_{preloader_name}")
+            
+            # This is a placeholder - actual DA generation would require specific tools
+            log(f"Note: Actual DA generation from preloader requires specific MTK tools")
+            log(f"Preloader {preloader_name} could be used to generate a DA file")
+            
+            # Copy preloader to output directory for reference
+            shutil.copy(preloader, os.path.join(da_output_dir, preloader_name))
+    
+    log(f"Found {len(da_files)} DA files and {len(preloader_files)} preloader files")
+    log(f"DA files and preloaders saved to: {da_output_dir}")
+    return da_output_dir
+
+def process_lineage_firmware():
+    """Process LineageOS firmware files"""
+    log("Processing LineageOS firmware...")
+    
+    # Path to LineageOS firmware directory
+    lineage_dir = "C:\\Users\\chenn\\mtkbrute\\firmware_dump\\lineage-20.0-20241208-UNOFFICIAL-cannon"
+    lineage_output_dir = os.path.join(CONFIG["output_dir"], "lineage")
+    os.makedirs(lineage_output_dir, exist_ok=True)
+    
+    # Check if the LineageOS directory exists
+    if not os.path.exists(lineage_dir):
+        error(f"LineageOS directory not found: {lineage_dir}")
+    
+    log(f"Found LineageOS directory: {lineage_dir}")
+    
+    # Find boot and system images in the LineageOS directory
+    boot_img = None
+    system_img = None
+    
+    for root, _, files in os.walk(lineage_dir):
+        for file in files:
+            filepath = os.path.join(root, file)
+            lower_file = file.lower()
+            
+            if "boot" in lower_file and lower_file.endswith(".img"):
+                boot_img = filepath
+            elif "system" in lower_file and lower_file.endswith(".img"):
+                system_img = filepath
+    
+    if boot_img:
+        log(f"Found boot image: {os.path.basename(boot_img)}")
+        # Copy boot image to output directory
+        shutil.copy(boot_img, os.path.join(lineage_output_dir, "boot.img"))
+        
+        # Patch boot image with Magisk
+        magisk_apk = download_magisk()
+        patched_boot = patch_boot_with_magisk(boot_img, magisk_apk)
+        log(f"Patched LineageOS boot image saved to: {patched_boot}")
+    else:
+        log("No boot image found in LineageOS directory")
+    
+    if system_img:
+        log(f"Found system image: {os.path.basename(system_img)}")
+        # Copy system image to output directory
+        shutil.copy(system_img, os.path.join(lineage_output_dir, "system.img"))
+    else:
+        log("No system image found in LineageOS directory")
+    
+    log("LineageOS processing completed")
+    return lineage_output_dir
+
 def main():
     """Main function"""
     log(f"Starting build process for {DEVICE} ({PLATFORM})")
@@ -416,7 +548,17 @@ def main():
     # Check requirements
     check_requirements()
     
-    # Clone firmware dump repo from GitGud first
+    # Extract DA files and preloaders
+    log("Extracting DA files and preloaders...")
+    da_dir = extract_da_files()
+    log(f"DA files and preloaders saved to: {da_dir}")
+    
+    # Process LineageOS firmware
+    log("Processing LineageOS firmware...")
+    lineage_dir = process_lineage_firmware()
+    log(f"LineageOS files saved to: {lineage_dir}")
+    
+    # Clone firmware dump repo from GitGud
     firmware_repo_dir = os.path.join(CONFIG["output_dir"], "firmware_repo")
     if not os.path.exists(os.path.join(firmware_repo_dir, ".git")):
         log("Cloning firmware repository from GitGud...")
@@ -424,7 +566,7 @@ def main():
     else:
         # Pull latest changes if repo already exists
         log("Updating firmware repository...")
-        run_command(["git", "pull"], cwd=firmware_repo_dir)
+        run_command(["git", "pull"], cwd=firmware_repo_dir)_dir)
     
     # Extract necessary files from firmware repo
     log("Extracting necessary files from firmware repository...")
