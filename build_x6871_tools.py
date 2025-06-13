@@ -559,14 +559,14 @@ def main():
     log(f"LineageOS files saved to: {lineage_dir}")
     
     # Clone firmware dump repo from GitGud
-    firmware_repo_dir = os.path.join(CONFIG["output_dir"], "firmware_repo")
-    if not os.path.exists(os.path.join(firmware_repo_dir, ".git")):
-        log("Cloning firmware repository from GitGud...")
-        run_command(["git", "clone", "https://gitgud.io/rama-firmware-dumps/infinix/Infinix-X6871.git", firmware_repo_dir])
-    else:
+    #firmware_repo_dir = os.path.join(CONFIG["output_dir"], "firmware_repo")
+   # if not os.path.exists(os.path.join(firmware_repo_dir, ".git")):
+       # log("Cloning firmware repository from GitGud...")
+       # run_command(["git", "clone", "https://gitgud.io/rama-firmware-dumps/#infinix/Infinix-X6871.git", firmware_repo_dir])
+   # else:
         # Pull latest changes if repo already exists
-        log("Updating firmware repository...")
-        run_command(["git", "pull"], cwd=firmware_repo_dir)_dir)
+       # log("Updating firmware repository...")
+       # run_command(["git", "pull"], cwd=firmware_repo_dir)
     
     # Extract necessary files from firmware repo
     log("Extracting necessary files from firmware repository...")
