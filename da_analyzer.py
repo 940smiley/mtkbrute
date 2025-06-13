@@ -8,12 +8,25 @@ import time
 import logging
 import glob
 from datetime import datetime
-from mtkclient.Library.Connection.usblib import UsbClass
-from mtkclient.Library.utils import LogBase
-from mtkclient.config.usb_ids import default_ids
-from mtkclient.Library.Connection.Connection import Connection
-from mtkclient.Library.DA.mtk_da_cmd import DA_handler
-from mtkclient.Library.Port import Port
+
+# Add mtkclient to path
+script_dir = os.path.dirname(os.path.abspath(__file__))
+mtkclient_dir = os.path.join(script_dir, "mtkclient")
+if os.path.exists(mtkclient_dir):
+    sys.path.insert(0, mtkclient_dir)
+
+try:
+    from mtkclient.Library.Connection.usblib import UsbClass
+    from mtkclient.Library.utils import LogBase
+    from mtkclient.config.usb_ids import default_ids
+    from mtkclient.Library.Connection.Connection import Connection
+    from mtkclient.Library.DA.mtk_da_cmd import DA_handler
+    from mtkclient.Library.Port import Port
+except ImportError:
+    print("Error: mtkclient module not found.")
+    print("Please make sure the mtkclient directory is in the same folder as this script.")
+    print("If you installed mtkclient elsewhere, update the path in this script.")
+    sys.exit(1)
 
 class DAAnalyzer(metaclass=LogBase):
     def __init__(self, loglevel=logging.INFO):
@@ -46,11 +59,14 @@ class DAAnalyzer(metaclass=LogBase):
         """Find all DA files in the repository"""
         da_files = []
         
+        # Get base directory
+        base_dir = os.path.dirname(os.path.abspath(__file__))
+        
         # Look in common locations
         search_paths = [
-            "/workspaces/mtkbrute/*.bin",
-            "/workspaces/mtkbrute/mtkclient/mtkclient/Loader/*.bin",
-            "/workspaces/mtkbrute/mtkclient/mtkclient/payloads/*.bin"
+            os.path.join(base_dir, "*.bin"),
+            os.path.join(base_dir, "mtkclient", "mtkclient", "Loader", "*.bin"),
+            os.path.join(base_dir, "mtkclient", "mtkclient", "payloads", "*.bin")
         ]
         
         for path in search_paths:
