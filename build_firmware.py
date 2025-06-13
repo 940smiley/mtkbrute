@@ -1,8 +1,7 @@
 #!/usr/bin/env python3
 """
-MTK Firmware Builder for k39tv1-kaeru.bin
-This script builds an Android firmware package using the provided bootloader,
-preloader, and BROM files.
+MTK Firmware Builder for LineageOS 20.0 - cannon
+This script builds a firmware package using the provided LineageOS images.
 """
 
 import os
@@ -10,21 +9,19 @@ import sys
 import struct
 import shutil
 import argparse
-import subprocess
 from pathlib import Path
 
 # Define paths
-BASE_DIR = Path('C:/users/chenn/mtkbrute')
-BIN_DIR = BASE_DIR / 'mtk_build' / 'bin'
-OUT_DIR = BASE_DIR / 'mtk_build' / 'out'
-MTKCLIENT_DIR = BASE_DIR / 'mtkclient'
+BASE_DIR = Path('C:/users/chenn/mtkbrute/firmware_dump/lineage-20.0-20241208-UNOFFICIAL-cannon')
+BIN_DIR = BASE_DIR
+OUT_DIR = BASE_DIR / 'out'
+MTKCLIENT_DIR = Path('C:/users/chenn/mtkbrute/mtkclient')
 
-def check_files():
+def check_files(bootloader_file, preloader_file):
     """Check if required files exist"""
     required_files = [
-        BIN_DIR / 'k39tv1-kaeru.bin',
-        BIN_DIR / 'preloader_k39tv1_bsp.bin',
-        BIN_DIR / 'brom_MT6739_MT6731_MT8765_699.bin'
+        BIN_DIR / bootloader_file,
+        BIN_DIR / preloader_file
     ]
     
     for file in required_files:
@@ -34,45 +31,24 @@ def check_files():
     
     return True
 
-def analyze_bootloader():
-    """Analyze the bootloader file"""
-    bootloader_path = BIN_DIR / 'k39tv1-kaeru.bin'
-    print(f"Analyzing bootloader: {bootloader_path}")
+def analyze_file(filepath, label):
+    """Analyze a binary file (bootloader/preloader)"""
+    print(f"Analyzing {label}: {filepath}")
     
-    with open(bootloader_path, 'rb') as f:
+    with open(filepath, 'rb') as f:
         data = f.read()
     
-    print(f"Bootloader size: {len(data)} bytes")
+    print(f"{label} size: {len(data)} bytes")
     
-    # Check for MTK header
     if len(data) >= 4:
         magic = data[:4].hex()
-        print(f"Bootloader magic: {magic}")
+        print(f"{label} magic: {magic}")
 
-def analyze_preloader():
-    """Analyze the preloader file"""
-    preloader_path = BIN_DIR / 'preloader_k39tv1_bsp.bin'
-    print(f"Analyzing preloader: {preloader_path}")
-    
-    with open(preloader_path, 'rb') as f:
-        data = f.read()
-    
-    print(f"Preloader size: {len(data)} bytes")
-    
-    # Check for MTK header
-    if len(data) >= 4:
-        magic = data[:4].hex()
-        print(f"Preloader magic: {magic}")
-        
-        # MTK preloader typically has 'MMM\x01' as magic (4d4d4d01)
-        if magic == '4d4d4d01':
-            print("Valid MTK preloader header detected")
-
-def create_scatter_file():
+def create_scatter_file(preloader_file, bootloader_file):
     """Create a scatter file for the firmware"""
     scatter_path = OUT_DIR / 'MT6739_Android_scatter.txt'
     
-    scatter_content = """
+    scatter_content = f"""
 ############################################################################################################
 #
 #  General Setting 
@@ -82,7 +58,7 @@ def create_scatter_file():
   info: 
     - config_version: V1.1.2
       platform: MT6739
-      project: k39tv1_bsp
+      project: cannon
       storage: EMMC
       boot_channel: MSDC_0
       block_size: 0x20000
@@ -93,7 +69,7 @@ def create_scatter_file():
 ############################################################################################################
 - partition_index: SYS0
   partition_name: preloader
-  file_name: preloader_k39tv1_bsp.bin
+  file_name: {preloader_file}
   is_download: true
   type: SV5_BL_BIN
   linear_start_addr: 0x0
@@ -107,7 +83,7 @@ def create_scatter_file():
 
 - partition_index: SYS1
   partition_name: bootloader
-  file_name: k39tv1-kaeru.bin
+  file_name: {bootloader_file}
   is_download: true
   type: NORMAL_ROM
   linear_start_addr: 0x0
@@ -119,60 +95,52 @@ def create_scatter_file():
   operation_type: BOOTLOADERS
   reserve: 0x00
 """
-    
     with open(scatter_path, 'w') as f:
-        f.write(scatter_content)
+        f.write(scatter_content.strip())
     
     print(f"Created scatter file: {scatter_path}")
     return scatter_path
 
-def create_firmware_package():
+def create_firmware_package(bootloader_file, preloader_file):
     """Create the firmware package"""
-    # Create output directory if it doesn't exist
     OUT_DIR.mkdir(parents=True, exist_ok=True)
     
-    # Copy necessary files to output directory
-    shutil.copy(BIN_DIR / 'k39tv1-kaeru.bin', OUT_DIR)
-    shutil.copy(BIN_DIR / 'preloader_k39tv1_bsp.bin', OUT_DIR)
+    shutil.copy(BIN_DIR / bootloader_file, OUT_DIR)
+    shutil.copy(BIN_DIR / preloader_file, OUT_DIR)
     
-    # Create scatter file
-    scatter_file = create_scatter_file()
+    scatter_file = create_scatter_file(preloader_file, bootloader_file)
     
-    # Create firmware package
-    output_file = OUT_DIR / 'k39tv1_firmware.bin'
-    
+    output_file = OUT_DIR / 'lineage20_cannon_firmware.bin'
     print(f"Creating firmware package: {output_file}")
     print("Firmware package created successfully!")
     
     return output_file
 
 def main():
-    """Main function"""
-    parser = argparse.ArgumentParser(description='MTK Firmware Builder')
+    parser = argparse.ArgumentParser(description='MTK Firmware Builder for LineageOS 20.0 (cannon)')
     parser.add_argument('--analyze', action='store_true', help='Analyze input files only')
+    parser.add_argument('--bootloader', type=str, default='boot.img', help='Bootloader file name')
+    parser.add_argument('--preloader', type=str, default='preloader_cannon.bin', help='Preloader file name')
     args = parser.parse_args()
     
-    print("MTK Firmware Builder for k39tv1-kaeru.bin")
-    print("=========================================")
+    print("MTK Firmware Builder for LineageOS 20.0 - cannon")
+    print("================================================")
     
-    # Check if required files exist
-    if not check_files():
+    if not check_files(args.bootloader, args.preloader):
         return 1
     
-    # Analyze files
-    analyze_bootloader()
-    analyze_preloader()
+    analyze_file(BIN_DIR / args.bootloader, "Bootloader")
+    analyze_file(BIN_DIR / args.preloader, "Preloader")
     
     if args.analyze:
         return 0
-    
-    # Create firmware package
-    firmware_file = create_firmware_package()
+
+    firmware_file = create_firmware_package(args.bootloader, args.preloader)
     
     print("\nFirmware build completed!")
     print(f"Output firmware: {firmware_file}")
     print("\nTo flash the firmware, use the following command:")
-    print(f"python3 {MTKCLIENT_DIR}/mtk.py w --preloader={OUT_DIR}/preloader_k39tv1_bsp.bin lk1 {OUT_DIR}/k39tv1-kaeru.bin lk2 {OUT_DIR}/k39tv1-kaeru.bin")
+    print(f"python3 {MTKCLIENT_DIR}/mtk.py w --preloader={OUT_DIR}/{args.preloader} lk1 {OUT_DIR}/{args.bootloader} lk2 {OUT_DIR}/{args.bootloader}")
     
     return 0
 
